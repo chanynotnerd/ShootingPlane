@@ -93,4 +93,8 @@ protected:
 	void EnhancedFire(const FInputActionValue& Value);
 
 	void EnhancedPitchAndRoll(const FInputActionValue& Value);
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category="Data")
+	TSubclassOf<class AMyActor> RocketTemplate;
+	// TSubclassOf는 클래스를 담기 위함이고, 블루프린트 클래스를 담는다.
 };

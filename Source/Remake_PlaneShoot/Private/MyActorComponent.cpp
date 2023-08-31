@@ -28,7 +28,21 @@ void UMyActorComponent::BeginPlay()
 void UMyActorComponent::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
+	for (int32 i = 0; i < Propellers.Num(); ++i)
+	{
+		// Roll Rotation
+		Propellers[i]->AddLocalRotation(FRotator(0,
+			0,
+			3200 * DeltaTime));
+	}
 
-	// ...
+}
+
+void UMyActorComponent::AddPropeller(USceneComponent* NewPropeller)
+{
+	if(NewPropeller)
+	{
+	Propellers.Add(NewPropeller);
+	}
 }
 

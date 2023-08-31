@@ -13,6 +13,7 @@
 #include "EnhancedInputComponent.h"
 #include "EnhancedInputSubsystems.h"
 #include "InputActionValue.h"
+#include "MyActor.h"
 
 // Sets default values
 AMyPawn::AMyPawn()
@@ -41,6 +42,7 @@ AMyPawn::AMyPawn()
 	Right->SetupAttachment(Body);
 	Right->SetRelativeLocation(FVector(37.641531, 20.773911, -0.032832));
 
+	// ObjectFinder는 C++클래스 쓰기 위함.
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SM_Propeller(TEXT("/Script/Engine.StaticMesh'/Game/Airplane/Mesh/SM_P38_Propeller.SM_P38_Propeller'"));
 	if (SM_Propeller.Succeeded())
 	{
@@ -61,8 +63,20 @@ AMyPawn::AMyPawn()
 
 	MyActorComponent = CreateDefaultSubobject<UMyActorComponent>(TEXT("MyActorComponent"));
 
+	// FClassFinder는 블루프린트 클래스를 부름, 블루프린트 클래스를 찾기위해 레퍼런스 뒤에 _C를 붙여준다.
+	static ConstructorHelpers::FClassFinder<AMyActor>RocketClass 
+	(TEXT("/Script/Engine.Blueprint'/Game/Airplane/Blueprint/CPP/BP_MyActor.BP_MyActor_C'"));
 
+	if (!RocketClass.Succeeded())
+	{
+		UE_LOG(LogTemp, Warning, TEXT("Failed"));
+	}
+	else
+	{
+		RocketTemplate = RocketClass.Class;
+	}
 }
+
 
 // Called when the game starts or when spawned
 void AMyPawn::BeginPlay()
@@ -97,7 +111,7 @@ void AMyPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
 
 void AMyPawn::Pitch(float Value)
 {
-	AddActorLocalRotation(FRotator(Value * UGameplayStatics::GetWorldDeltaSeconds(GetWorld()) * 60.0f, 0, 0));
+	AddActorLocalRotation(FRotator(Value * UGameplayStatics::GetWorldDeltaSeconds(GetWorld()) * 60.0f, 0, Value * UGameplayStatics::GetWorldDeltaSeconds(GetWorld()) * 60.0f));
 }
 
 void AMyPawn::Roll(float Value)
@@ -117,9 +131,24 @@ void AMyPawn::EnhancedUnBoost(const FInputActionValue& Value)
 
 void AMyPawn::EnhancedFire(const FInputActionValue& Value)
 {
+	if(RocketTemplate != nullptr)
+	{
+	AActor* SpawnedActor = GetWorld()->SpawnActor<AActor>(RocketTemplate,
+		Arrow->GetComponentLocation(),
+		Arrow->GetComponentRotation());
+	// SpawnActor의 위치값, 회전값만 적어서 Spawn.
+	}
 }
 
 void AMyPawn::EnhancedPitchAndRoll(const FInputActionValue& Value)
 {
+	// Movement(Pitch and Roll)
+	FVector2D VectorValue = Value.Get<FVector2D>();
+
+	if(!VectorValue.IsZero()) 
+	{
+		AddActorLocalRotation(FRotator(VectorValue.Y * UGameplayStatics::GetWorldDeltaSeconds(GetWorld()) * 60.0f, 
+			0, VectorValue.X * UGameplayStatics::GetWorldDeltaSeconds(GetWorld()) * 60.0f));
+	}
 }
 
